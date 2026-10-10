@@ -15,7 +15,11 @@ const { openStore } = require("./lib/store"),
   } = require("./lib/workflow");
 const demo = process.env.DEMO_MODE === "1",
   port = Number(process.env.PORT || 3000),
-  base = process.env.APP_URL || `http://localhost:${port}`;
+  base = (
+    process.env.APP_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    `http://localhost:${port}`
+  ).replace(/\/$/, "");
 const store = openStore(
   process.env.DATABASE_PATH || path.join(__dirname, "data", "bridge.sqlite"),
 );
