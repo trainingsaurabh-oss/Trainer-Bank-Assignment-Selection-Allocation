@@ -4,6 +4,10 @@ _Connecting trainers, opportunities, and facilitation._
 
 A lightweight Node.js 24 application with shared SQLite persistence, Google sign-in, role dashboards, explainable trainer matching, approval workflows, client shortlists, reviews, and feedback. No npm dependencies are required.
 
+## Complete site specification
+
+Read [the complete discussion specification](docs/COMPLETE_SITE_SPECIFICATION.md), or download [the Word document](docs/Trainer_Assignment_Bridge_Complete_Specification.docx). It separates agreed requirements, initial defaults and implementation limits.
+
 ## Run locally
 
 ```sh
