@@ -53,7 +53,7 @@ function select(label, key, options, value = "", wide = false) {
     .map((o) => {
       const v = typeof o === "object" ? o.value : o,
         t = typeof o === "object" ? o.label : o;
-      return `<option value="${esc(v)}" ${v === value ? "selected" : ""}>${esc(t)}</option>`;
+      return `<option value="${esc(v)}" ${String(v).toLowerCase() === String(value).toLowerCase() ? "selected" : ""}>${esc(t)}</option>`;
     })
     .join("")}</select></label>`;
 }
@@ -217,7 +217,7 @@ const views = {
         .filter((t) => t.rating)
         .map(
           (t) =>
-            `<tr><td>${esc(t.profile?.name)}</td><td>${esc(t.tier || "Associate")}</td><td>${pill(t.rating?.grade || "New / Unrated")}</td><td>${t.rating?.score != null ? esc(t.rating.score) + "/10" : "Awaiting eligible history"}</td></tr>`,
+            `<tr><td>${esc(t.profile?.name)}</td><td>${esc(t.tier || "Associate")}</td><td>${pill(t.rating?.grade || "New / Unrated")}</td><td>${t.rating?.score != null ? esc(t.rating.score) + "/10" + `<details><summary class="muted">Breakdown</summary>${(t.rating.factors || []).map((f) => `<p class="muted">${esc(pretty(f.key))}: ${f.score == null ? "Pending" : esc(f.score) + "/10"} · ${esc(f.weight)}%</p>`).join("")}</details>` : "Awaiting eligible history"}</td></tr>`,
         )
         .join(
           "",
@@ -263,7 +263,7 @@ const views = {
         "Backup & cleanup",
         "Retain your community. Clear unnecessary detail safely.",
       ) +
-      `<div class="detailgrid"><section class="card"><h2>Download backup</h2><p class="muted">Export data before cleanup. External document links are included; linked files remain with their provider.</p><button class="btn" id="backup-download">Download JSON backup</button><p id="backup-status" class="muted"></p><div class="divider"></div><h3>Restore a backup</h3><input id="restore-file" type="file" accept="application/json"><button class="btn secondary" id="restore-backup" style="margin-top:12px">Restore selected backup</button></section><section class="card"><h2>Preview cleanup</h2><p class="muted">Only eligible old completed or closed records are cleaned. Profiles, rating summaries, contribution totals and essential history remain.</p><form id="cleanup-preview">${field("Records before", "before", "", "date")}<button class="btn secondary" style="margin-top:15px">Preview eligible records</button></form><div id="cleanup-result"></div></section></div>`
+      `<div class="detailgrid"><section class="card"><h2>Download backup</h2><p class="muted">Export data before cleanup. External document links are included; linked files remain with their provider.</p><button class="btn" id="backup-download">Download JSON backup</button><p id="backup-status" class="muted"></p><button class="btn secondary" id="remove-backup" style="margin-top:12px">Remove saved server backup</button><div class="divider"></div><h3>Restore a backup</h3><input id="restore-file" type="file" accept="application/json"><button class="btn secondary" id="restore-backup" style="margin-top:12px">Restore selected backup</button></section><section class="card"><h2>Preview cleanup</h2><p class="muted">Only eligible old completed or closed records are cleaned. Profiles, rating summaries, contribution totals and essential history remain.</p><form id="cleanup-preview">${field("Records before", "before", "", "date")}<button class="btn secondary" style="margin-top:15px">Preview eligible records</button></form><div id="cleanup-result"></div></section></div>`
     );
   },
 };
@@ -278,7 +278,7 @@ function profileCard(t) {
     )
     .join(
       "",
-    )}</div><div class="divider"></div><div class="actions">${t.profile?.certificates && ["admin", "subadmin"].includes(state.user.role) ? `<button class="btn secondary" data-act="verifyCertificate" data-trainer-id="${t.id}">${t.certificationVerified ? "Certificate verified" : "Verify certificate"}</button>` : ""}${t.status === "pending" && staff() ? `<button class="btn" data-act="approveProfile" data-trainer-id="${t.id}">Approve registration</button>` : ""}${t.revision && ["admin", "subadmin"].includes(state.user.role) ? `<button class="btn" data-act="approveRevision" data-trainer-id="${t.id}">Approve revision</button>` : ""}${staff() ? `<button class="btn secondary" data-edit-profile="${t.id}">Prepare revision</button>` : ""}${admin() ? `<button class="btn secondary" data-coordinator="${t.id}">Assign primary coordinator</button><button class="btn secondary" data-tier="${t.id}">Set quality tier</button>` : ""}</div></section>`;
+    )}</div><div class="divider"></div><h3>Seniority recommendation</h3><p class="muted">${esc(t.tierRecommendation?.tier || "Pending review")} · ${esc(list(t.tierRecommendation?.reasons))}</p>${t.rating ? `<details><summary>Performance score breakdown</summary>${(t.rating.factors || []).map((f) => `<p class="muted">${esc(pretty(f.key))}: ${f.score == null ? "Pending" : esc(f.score) + "/10"} · ${esc(f.weight)}%</p>`).join("")}</details>` : ""}<div class="divider"></div><div class="actions">${["admin", "subadmin"].includes(state.user.role) ? `<button class="btn secondary" data-verify-expertise="${t.id}">Review topic expertise</button>` : ""}${t.profile?.certificates && ["admin", "subadmin"].includes(state.user.role) ? `<button class="btn secondary" data-act="verifyCertificate" data-trainer-id="${t.id}">${t.certificationVerified ? "Certificate verified" : "Verify certificate"}</button>` : ""}${t.status === "pending" && staff() ? `<button class="btn" data-act="approveProfile" data-trainer-id="${t.id}">Approve registration</button>` : ""}${t.revision && ["admin", "subadmin"].includes(state.user.role) ? `<button class="btn" data-act="approveRevision" data-trainer-id="${t.id}">Approve revision</button>` : ""}${staff() ? `<button class="btn secondary" data-edit-profile="${t.id}">Prepare revision</button>` : ""}${admin() ? `<button class="btn secondary" data-coordinator="${t.id}">Assign primary coordinator</button><button class="btn secondary" data-tier="${t.id}">Set quality tier</button>` : ""}</div></section>`;
 }
 function leadView() {
   const l = state.lead,
@@ -332,6 +332,29 @@ function leadView() {
   );
 }
 function bind() {
+  document.querySelectorAll("[data-verify-expertise]").forEach(
+    (b) =>
+      (b.onclick = () => {
+        const t = trainer(b.dataset.verifyExpertise);
+        modal(
+          "Review declared topic expertise",
+          `<p class="muted">Confirm only topics reviewed through relevant evidence or an assessment.</p>${t.profile.topics.map((topic) => `<label class="checkbox"><input type="checkbox" name="topics" value="${esc(topic)}" ${(t.profile.verifiedTopics || []).includes(topic) ? "checked" : ""}>${esc(topic)}</label>`).join("")}`,
+          (d, f) =>
+            action("verifyExpertise", {
+              trainerId: t.id,
+              topics: new FormData(f).getAll("topics"),
+            }),
+        );
+      }),
+  );
+  $("#remove-backup")?.addEventListener("click", () =>
+    modal(
+      "Remove server backup",
+      `<div class="notice warn">Save and verify an offsite copy first. Removing this server copy prevents using it for cleanup or restore. Type REMOVE BACKUP to confirm.</div>${field("Backup ID", "backupId", state.backupId || "")}${field("Confirmation", "confirm")}`,
+      (d) => api("/api/remove-backup", d),
+    ),
+  );
+
   $("#signout")?.addEventListener("click", async () => {
     try {
       await api("/api/logout", {});
@@ -412,7 +435,7 @@ function bind() {
   $("[data-detail]")?.addEventListener("click", () =>
     modal(
       "Assignment detailing",
-      `<div class="formgrid">${field("Topic", "topic", l.topic || l.title)}${select("Training type", "type", ["Technical", "Behavioural", "Compliance", "Leadership", "Digital"], l.type)}${select("Audience level", "audience", ["Frontline", "Supervisors", "Middle managers", "Senior leaders"], l.audience)}${field("Audience age group", "audienceAge", l.audienceAge)}${field("Industry", "industry", l.industry)}${field("Preferred training style", "style", l.style)}${field("Language", "language", l.language)}${select("Delivery mode", "mode", ["classroom", "virtual", "blended", "on-the-job"], l.mode)}${field("Location", "location", l.location)}${field("Date", "date", l.date, "date")}${field("Fee / budget status", "fee", l.fee)}${select("Primary focus", "focus", ["People", "Process", "Product"], l.focus)}${select("Development area", "development", ["Knowledge", "Attitude", "Skill", "Habit"], l.development)}${select(
+      `<div class="formgrid">${field("Topic", "topic", l.topic || l.title)}${select("Training type", "type", ["", "Technical", "Behavioural", "Compliance", "Leadership", "Digital"], l.type)}${select("Audience level", "audience", ["Frontline", "Supervisors", "Middle managers", "Senior leaders"], l.audience)}${field("Audience age group", "audienceAge", l.audienceAge)}${field("Industry", "industry", l.industry)}${field("Preferred training style", "style", l.style)}${field("Language", "language", l.language)}${select("Delivery mode", "mode", ["classroom", "virtual", "blended", "on-the-job"], l.mode)}${field("Location", "location", l.location)}${field("Date", "date", l.date, "date")}${field("Fee / budget status", "fee", l.fee)}${select("Primary focus", "focus", ["People", "Process", "Product"], l.focus)}${select("Development area", "development", ["Knowledge", "Attitude", "Skill", "Habit"], l.development)}${select(
         "Classification",
         "crucial",
         [
@@ -547,27 +570,25 @@ function bind() {
   $("[data-print]")?.addEventListener("click", () =>
     window.open("/client/" + l.clientToken + "?print=1", "_blank"),
   );
-  document
-    .querySelectorAll("[data-report]")
-    .forEach(
-      (b) =>
-        (b.onclick = () =>
-          modal(
-            "Submit " + pretty(b.dataset.report),
-            field(
-              "Plan / report content",
-              "content",
-              l.reports?.[b.dataset.report]?.content || "",
-              "textarea",
-            ),
-            (d) =>
-              action("submitReport", {
-                leadId: l.id,
-                kind: b.dataset.report,
-                content: d.content,
-              }),
-          )),
-    );
+  document.querySelectorAll("[data-report]").forEach(
+    (b) =>
+      (b.onclick = () =>
+        modal(
+          "Submit " + pretty(b.dataset.report),
+          field(
+            "Plan / report content",
+            "content",
+            l.reports?.[b.dataset.report]?.content || "",
+            "textarea",
+          ),
+          (d) =>
+            action("submitReport", {
+              leadId: l.id,
+              kind: b.dataset.report,
+              content: d.content,
+            }),
+        )),
+  );
   $("[data-reviewer]")?.addEventListener("click", () =>
     modal(
       "Select expert reviewer",

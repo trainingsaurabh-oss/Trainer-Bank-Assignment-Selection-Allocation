@@ -1,0 +1,3 @@
+Trainer Assignment Bridge adds a persistent Node.js/SQLite application for the agreed trainer community workflows: role-scoped dashboards, profile approval/revisions, lead contributions and routing, explainable matching, independent approvals, client selection, reports/feedback, and protected backup/cleanup.
+
+Validation includes automated workflow/security/persistence tests, desktop/mobile browser checks, syntax checks, and Docker build. Production Google sign-in and public deployment need external configuration. Demo accounts are disabled by default. See README.md and docs/IMPLEMENTATION_STATUS.md for deployment and remaining limits.

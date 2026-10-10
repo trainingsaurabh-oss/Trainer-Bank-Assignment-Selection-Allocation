@@ -1,6 +1,6 @@
 # Open decisions
 
-These items require decisions or technical validation before the corresponding feature is considered complete. See PRODUCT_SPECIFICATION.md for agreed requirements.
+The user subsequently authorised simple initial defaults. See DEFAULT_RULES.md and IMPLEMENTATION_STATUS.md for the implemented defaults and current limitations. The list below preserves earlier questions for future refinement; it is not a requirement to reopen every decision before using the first version. See PRODUCT_SPECIFICATION.md for agreed requirements.
 
 ## Product rules
 

@@ -22,5 +22,9 @@ A/B/C thresholds are 8/6 out of 10; minimum performance eligibility remains thre
 - Seniority recommendations and coordinator succession require human approval; no automatic appointment.
 - Backups contain personal data and document links and require secure storage. External documents themselves are not backed up.
 - A downloaded PDF/image cannot be revoked. Version records can mark exports superseded, but recipients may retain old copies.
-- Cleanup compacts record content; SQLite reuses freed database pages. This does not guarantee immediate reduction of filesystem size.
+- Cleanup compacts record content and runs SQLite vacuum/checkpoint to reclaim pages. Backup files are separate and require explicit removal after offsite storage.
 - Live processes and sessions do not survive machine restarts; stored application records do.
+
+## Validation
+
+Automated tests cover workflow, privacy, independent approval, concurrent request preservation, persistence after restart, feedback duplication, backup safeguards, and database compaction. Desktop/mobile browser verification and a Docker build were also performed. Actual Google login, public URL, and cloud restart persistence remain unverified without deployment credentials.

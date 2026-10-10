@@ -9,6 +9,7 @@ const {
 } = require("../lib/scoring");
 const profile = {
   topics: ["Microsoft Excel"],
+  verifiedTopics: ["Excel"],
   audiences: ["frontline"],
   industries: ["hospitality"],
   styles: ["hands-on"],
@@ -174,4 +175,54 @@ test("tier recommendation needs reviewed evidence and remains subject to Admin a
   );
   assert.equal(recommendation.tier, "Senior Trainer");
   assert.equal(recommendation.requiresAdminApproval, true);
+});
+
+test("declared topic expertise gains confidence and points from reviewed or delivered evidence", () => {
+  const declared = { ...profile, verifiedTopics: [] };
+  const initial = matchTrainer(declared, lead);
+  assert.equal(initial.factors.find((f) => f.key === "topic").score, 8);
+  assert.equal(initial.provisional, true);
+  const delivered = matchTrainer(declared, lead, {}, [
+    { completed: true, topic: "Microsoft Excel" },
+  ]);
+  assert.equal(delivered.factors.find((f) => f.key === "topic").score, 10);
+  assert.equal(delivered.provisional, false);
+  assert.ok(initial.score >= 7);
+});
+test("mandatory criteria apply outside pooling and selected industry/style narrow the pool", () => {
+  const wrong = { ...lead, industry: "Banking", focus: "Product" };
+  assert.equal(
+    matchTrainer(profile, wrong, {
+      pooling: [],
+      requirements: { industry: "mandatory" },
+    }).eligible,
+    false,
+  );
+  assert.equal(
+    matchTrainer(profile, wrong, {
+      pooling: [],
+      requirements: { focus: "mandatory" },
+    }).eligible,
+    false,
+  );
+  assert.equal(
+    matchTrainer(profile, wrong, { pooling: ["industry"] }).eligible,
+    false,
+  );
+  assert.equal(
+    matchTrainer(
+      profile,
+      { ...lead, style: "Role play" },
+      { pooling: ["style"] },
+    ).eligible,
+    false,
+  );
+});
+test("booking dates normalize timestamps to calendar date", () => {
+  assert.equal(
+    matchTrainer(profile, { ...lead, id: "second", date: "2026-12-01" }, {}, [
+      { leadId: "first", status: "confirmed", date: "2026-12-01T09:00:00Z" },
+    ]).eligible,
+    false,
+  );
 });

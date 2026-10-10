@@ -253,6 +253,7 @@ const server = http.createServer(async (req, res) => {
           Object.values(l.feedbackLinks || {}).includes(token),
         );
       if (!l) fail("Feedback link not found", 404);
+      if (l.compactedAt) fail("Feedback is closed for archived sessions", 410);
       if (
         (l.sessionEnd || l.date) &&
         Date.now() < Date.parse(l.sessionEnd || l.date)
@@ -312,6 +313,11 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname.startsWith("/api/")) {
       if (!u) fail("Sign in required", 401);
       if (url.pathname === "/api/duplicates") {
+        if (
+          u.role === "trainer" &&
+          !s.trainers.some((t) => t.userId === u.id && t.status === "approved")
+        )
+          fail("Profile approval required", 403);
         const title = (url.searchParams.get("title") || "")
             .toLowerCase()
             .trim(),
@@ -472,7 +478,19 @@ const server = http.createServer(async (req, res) => {
           }
         }
         store.write(s);
+        store.compact();
         return json(res, 200, { ok: true, compacted: count });
+      }
+      if (url.pathname === "/api/remove-backup" && req.method === "POST") {
+        if (u.role !== "admin") fail("Admin only", 403);
+        const p = parsedBody,
+          backup = s.backups.find((b) => b.id === p.backupId);
+        if (!backup || p.confirm !== "REMOVE BACKUP")
+          fail("Backup ID and REMOVE BACKUP confirmation required");
+        fs.unlinkSync(backup.filename);
+        s.backups = s.backups.filter((b) => b.id !== backup.id);
+        store.write(s);
+        return json(res, 200, { ok: true });
       }
       if (url.pathname === "/api/restore" && req.method === "POST") {
         if (u.role !== "admin") fail("Admin only", 403);
