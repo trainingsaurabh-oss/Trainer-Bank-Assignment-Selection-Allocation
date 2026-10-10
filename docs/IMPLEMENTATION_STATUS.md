@@ -15,7 +15,7 @@ A/B/C thresholds are 8/6 out of 10; minimum performance eligibility remains thre
 ## Remaining limitations
 
 - Google sign-in must be tested with actual OAuth credentials and the final public origin.
-- No cloud account credentials were supplied; deployment artifacts do not constitute a live deployment.
+- Codex Sites is the selected host. No Sites tools or skill are present in this session; native hosting, shared storage and authentication support remain unassessed. Deployment artifacts do not constitute a live deployment.
 - Feedback tokens are private bearer links; forwarding does not independently prove a client's identity. Audience duplicate prevention is best-effort, not a verified attendance roster.
 - Topic similarity is deterministic matching, not an AI semantic engine. Related expertise still needs human review. Original-brief extraction is not an external AI integration.
 - Multi-day date intervals, multiple trainers per assignment, recurring batches, payments and email/WhatsApp integrations are not implemented.

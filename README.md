@@ -34,24 +34,13 @@ Create a Google OAuth web client with redirect URI `APP_URL/auth/google/callback
 
 Sessions use HttpOnly cookies and expire after 24 hours. Restarting the server logs users out; application data remains in SQLite. Run one instance against its persistent disk. Do not scale horizontally with independent database copies.
 
-## Deployment
+## Deployment: Codex Sites
 
-No deployment account was present at initial implementation. Two supported deployment artifacts are provided:
+The intended host is **Codex Sites with a native hosted URL**. This session has no Sites tools or skill, so no Sites deployment has been performed and its runtime/storage/authentication capabilities have not been assessed.
 
-- `Dockerfile`: run on an existing cloud server with a persistent `/app/data` volume, TLS reverse proxy, and the variables above.
-- `render.yaml`: a Render blueprint using a persistent disk. **This selects Render's paid Starter plan because its free web tier does not provide the required persistent disk. Do not create it without reviewing and approving current costs.** No service has been provisioned by this repository.
+Read [the Sites handoff](docs/SITES_HANDOFF.md) in a Sites-enabled conversation. It preserves all existing functionality and lists the checks needed before adapting the application. Do not replace shared persistence with browser storage or publish demo accounts as production authentication.
 
-On an existing Docker-capable cloud host:
-
-```sh
-docker build -t trainer-assignment-bridge .
-docker run -d --name trainer-bridge --restart unless-stopped \
-  --env-file /secure/path/bridge.env \
-  -p 127.0.0.1:3000:3000 \
-  -v bridge-data:/app/data trainer-assignment-bridge
-```
-
-Place it behind the host's HTTPS proxy. Verify `/healthz` returns `{"status":"ok","database":true}`. Verify a Google login, registration approval, two different user sessions, invitation flow, and persistence after container restart before using real trainer data. Container health checks and structured error logs are included; external uptime monitoring is not configured.
+The `Dockerfile` remains a portable runtime artifact. `render.yaml` and [the alternative Render instructions](docs/ALTERNATIVE_RENDER_DEPLOYMENT.md) preserve previous work only; Render is not the selected host and no service was created.
 
 ## Recovery and storage
 
@@ -73,4 +62,4 @@ Rollback application code to the previous Git commit/container image while keepi
 
 ## Current limits
 
-See `docs/IMPLEMENTATION_STATUS.md` for verified features and limitations. Public deployment and actual Google sign-in need external configuration. This repository is not evidence of a deployed site.
+See `docs/IMPLEMENTATION_STATUS.md` for verified features and limitations. Sites deployment and real authentication must be verified with Sites capabilities. This repository is not evidence of a deployed site.

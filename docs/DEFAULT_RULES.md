@@ -17,4 +17,4 @@ These defaults implement the user's approval to keep unresolved details simple a
 
 Google OAuth is implemented but requires a configured web client and public origin. Demo accounts exist only with DEMO_MODE=1. Dashboard deadlines/reminders require no external messaging provider. Email, WhatsApp and AI brief extraction are not integrated.
 
-No public hosting was provisioned. The repository supplies Docker and a Render persistent-disk blueprint. The Render plan is paid; provisioning requires separate approval of charges. No continuous monitoring service is configured.
+No public hosting was provisioned. The user selected Codex Sites; this session lacks Sites tools and a Sites skill. Verify Sites runtime, persistence and authentication in a Sites-enabled conversation. Docker and Render artifacts remain optional portability work; Render is not the selected host. No continuous monitoring service is configured.
